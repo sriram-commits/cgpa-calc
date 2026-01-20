@@ -270,7 +270,8 @@
     });
 
     document.getElementById('calculate-btn').onclick = () => {
-        const inputs = document.querySelectorAll('.mark-input');
+    let failedSubjects = []; 
+    const inputs = document.querySelectorAll('.mark-input');
     for (let input of inputs) {
         if (input.value === "") {
             alert("Please fill all the boxes");
@@ -279,14 +280,49 @@
     }
         let tp = 0, tc = 0;
         document.querySelectorAll('.theory-card').forEach(c => {
-            let cr = parseFloat(c.dataset.credits), tot = (parseFloat(c.querySelector('.t-cie1').value)||0) + (parseFloat(c.querySelector('.t-cie2').value)||0) + (parseFloat(c.querySelector('.t-see').value)||0) + (parseFloat(c.querySelector('.t-int').value)||0);
-            let gp = tot>=90?10:tot>=80?9:tot>=70?8:tot>=60?7:tot>=50?6:tot>=40?5:0;
-            tp += (gp * cr); tc += cr;
-        });
+    let cr = parseFloat(c.dataset.credits);
+    // 1. Grab the marks from the boxes
+    let c1 = (parseFloat(c.querySelector('.t-cie1').value)||0);
+    let c2 = (parseFloat(c.querySelector('.t-cie2').value)||0);
+    let st = (parseFloat(c.querySelector('.t-see').value)||0);
+    let it = (parseFloat(c.querySelector('.t-int').value)||0);
+    
+    // 2. Do the math for this one subject
+    let cieTotal = c1 + c2 + it;
+    let tot = cieTotal + st;
+    let subName = c.querySelector('.subject-name').innerText;
+
+    // 3. The "Rule Checker" - it looks for mistakes
+    let reasons = [];
+    if (st < 21) reasons.push("did not get min 21/60 in SEE");
+    if (cieTotal < 14) reasons.push("did not get min 14/40 in CIE/Internals");
+    if (tot < 40) reasons.push("did not get total 40/100");
+
+    // 4. If any rules were broken, remember the subject and why
+    if (reasons.length > 0) {
+        failedSubjects.push(`${subName}: ${reasons.join(' & ')}`);
+    }
+
+    // 5. Normal GPA math continues
+    let gp = tot>=90?10:tot>=80?9:tot>=70?8:tot>=60?7:tot>=50?6:tot>=40?5:0;
+    tp += (gp * cr); tc += cr;
+});
         document.querySelectorAll('.lab-card').forEach(c => { tp += (8.5 * parseFloat(c.dataset.credits)); tc += parseFloat(c.dataset.credits); });
         currentGPA = (tp / tc);
-        resultDiv.innerHTML = `Predicted CGPA: ${currentGPA.toFixed(2)}`;
-        resultDiv.style.display = "block"; saveBtn.style.display = "block";
+       // 1. Show the main GPA and the Disclaimer in small grey text
+        resultDiv.innerHTML = `Predicted CGPA: ${currentGPA.toFixed(2)} <br>
+        <span style="font-size: 1rem; color: #bbb; font-weight: normal;">This is just a rough estimate, might not be accurate</span>`;
+
+        // 2. If the "Checker" found failed subjects, list them on NEW LINES
+        if (failedSubjects.length > 0) {
+            resultDiv.innerHTML += `<div style="color: #ff4d4d; font-size: 1rem; margin-top: 15px; font-weight: bold;">
+                ⚠️ Failed in:<br>${failedSubjects.join('<br>')}
+            </div>`;
+        }
+
+        // 3. Make sure the result area stays visible
+        resultDiv.style.display = "block"; 
+        saveBtn.style.display = "block";
         
         targetList.innerHTML = "";
         [9.5, 9, 8.5, 8, 7.5].forEach(t => {
