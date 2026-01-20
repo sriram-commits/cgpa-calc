@@ -270,6 +270,13 @@
     });
 
     document.getElementById('calculate-btn').onclick = () => {
+        const inputs = document.querySelectorAll('.mark-input');
+    for (let input of inputs) {
+        if (input.value === "") {
+            alert("Please fill all the boxes");
+            return; // This stops the math from running if a box is empty
+        }
+    }
         let tp = 0, tc = 0;
         document.querySelectorAll('.theory-card').forEach(c => {
             let cr = parseFloat(c.dataset.credits), tot = (parseFloat(c.querySelector('.t-cie1').value)||0) + (parseFloat(c.querySelector('.t-cie2').value)||0) + (parseFloat(c.querySelector('.t-see').value)||0) + (parseFloat(c.querySelector('.t-int').value)||0);
