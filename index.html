@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPA Predictor</title>
+    <style>
+        :root {
+            --primary-glow: #00ff00;
+            --card-bg: rgba(20, 20, 20, 0.9);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            background-color: #000000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #ffffff;
+            overflow-x: hidden;
+            touch-action: manipulation;
+            scroll-behavior: smooth;
+        }
+
+        /* 3D FLOATING CREDIT */
+        .top-credit { 
+            text-align: right; padding: 50px 40px 10px 0; width: 100%; 
+            box-sizing: border-box;
+        }
+        .top-credit h2 { 
+            margin: 0; font-size: 2.2rem; color: #ffffff; font-weight: 700; 
+            text-shadow: 0 0 15px rgba(255,255,255,0.3);
+        }
+
+        /* 3D DASHBOARD */
+        .dashboard {
+            position: fixed; left: -300px; top: 0; width: 300px; height: 100%;
+            background: rgba(0, 0, 0, 0.95); border-right: 2px solid #ffffff;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 3000; padding: 80px 20px 20px;
+            box-sizing: border-box; overflow-y: auto;
+            box-shadow: 10px 0 30px rgba(255,255,255,0.1);
+        }
+        .dashboard.open { transform: translateX(300px); }
+
+        .dash-toggle {
+            position: fixed; left: 10px; top: 20px; background: #ffffff; color: #000000;
+            border: none; padding: 12px 20px; font-weight: bold; cursor: pointer;
+            z-index: 3001; border-radius: 5px; font-size: 1rem;
+            transition: 0.3s; box-shadow: 0 5px 15px rgba(255,255,255,0.2);
+        }
+        .dash-toggle:hover { transform: scale(1.1); box-shadow: 0 0 20px #ffffff; }
+
+        .saved-item {
+            border: 1px solid rgba(255,255,255,0.3); padding: 15px; margin-bottom: 15px;
+            border-radius: 8px; background: #111; position: relative;
+            cursor: pointer; transition: 0.3s ease;
+        }
+        .saved-item:hover { 
+            transform: translateX(10px) scale(1.02); 
+            border-color: var(--primary-glow);
+            background: #1a1a1a;
+        }
+
+        .delete-btn {
+            background: #ff4d4d; color: white; border: none; padding: 5px 10px;
+            font-size: 0.8rem; border-radius: 4px; cursor: pointer; float: right;
+        }
+
+        /* CLEAR DASHBOARD BUTTON - Styled like the main Reset button */
+        .clear-dash-btn {
+            width: 100%; background: transparent; color: #ffffff; border: 2px solid #ffffff;
+            padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer;
+            margin-top: 20px; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-sizing: border-box;
+        }
+        .clear-dash-btn:hover { 
+            background: rgba(255, 77, 77, 0.1);
+            color: #ff4d4d;
+            border-color: #ff4d4d;
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(255, 77, 77, 0.2);
+        }
+
+        .container { 
+            max-width: 800px; margin: 0 auto; padding: 20px 20px 80px; text-align: center; 
+        }
+
+        .hype-message { 
+            font-size: 2.5rem; font-weight: bold; margin-bottom: 20px; 
+            text-transform: uppercase; letter-spacing: 2px;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        #branchPicker {
+            width: 100%; max-width: 400px; padding: 12px; font-size: 1.1rem;
+            background-color: #000000; color: #ffffff; border: 2px solid #ffffff;
+            border-radius: 8px; cursor: pointer; transition: 0.3s;
+            animation: fadeInUp 1s ease-out;
+        }
+        #branchPicker:hover { box-shadow: 0 0 15px rgba(255,255,255,0.5); transform: translateY(-2px); }
+
+        .section-heading {
+            color: #ffffff; text-align: left; margin: 40px auto 20px;
+            max-width: 500px; font-size: 1.8rem; border-bottom: 2px solid #ffffff; 
+            padding-bottom: 10px; animation: fadeInUp 1.2s ease-out;
+        }
+
+        .subject-card {
+            background: var(--card-bg); border: 2px solid rgba(255,255,255,0.5); 
+            border-radius: 12px; padding: 25px 30px; margin: 20px auto; max-width: 500px; 
+            text-align: left; transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: fadeInUp 0.5s ease-out forwards;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+        .subject-card:hover { 
+            transform: translateY(-10px) rotateX(2deg) rotateY(2deg); 
+            border-color: #ffffff;
+            box-shadow: 0 20px 40px rgba(255,255,255,0.1);
+        }
+
+        .subject-name { font-size: 1.3rem; font-weight: bold; margin-bottom: 20px; border-left: 4px solid #ffffff; padding-left: 10px; }
+
+        .mark-input {
+            width: 100%; padding: 12px; background: #000000; color: #ffffff;
+            border: 1px solid rgba(255,255,255,0.4); border-radius: 6px; 
+            font-size: 1.1rem; box-sizing: border-box; transition: 0.3s;
+        }
+        .mark-input::-webkit-outer-spin-button,
+        .mark-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .mark-input[type=number] { -moz-appearance: textfield; }
+
+        .mark-input:focus { 
+            border-color: var(--primary-glow); 
+            box-shadow: 0 0 10px var(--primary-glow);
+            transform: scale(1.02);
+            outline: none;
+        }
+
+        .btn-group { margin-top: 30px; display: none; gap: 15px; flex-direction: column; align-items: center; }
+        .btn {
+            width: 100%; max-width: 300px; padding: 15px; font-size: 1.1rem;
+            border-radius: 12px; cursor: pointer; font-weight: bold; border: 2px solid #ffffff; 
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: transparent; color: #ffffff; box-sizing: border-box;
+        }
+        .btn:hover { 
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(255, 255, 255, 0.15);
+            border-color: #ffffff;
+        }
+        #save-btn { background: transparent; color: #00ff00; border: 2px solid #00ff00; display: none; margin: 20px auto; }
+        #save-btn:hover { background: rgba(0, 255, 0, 0.1); box-shadow: 0 10px 20px rgba(0, 255, 0, 0.2); }
+
+        #result-display { 
+            margin: 40px auto; font-size: 2.8rem; font-weight: 1000; color: var(--primary-glow); 
+            display: none; text-shadow: 0 0 20px rgba(0,255,0,0.5);
+        }
+
+        /* TARGET SECTION STYLE */
+        .target-container { 
+            margin: 30px auto; padding: 20px; background: #111; border-radius: 15px; 
+            border: 1px solid #333; display: none; max-width: 500px; animation: fadeInUp 0.6s ease-out; 
+        }
+        .target-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #222; }
+        .target-row:last-child { border-bottom: none; }
+        .target-label { font-weight: bold; color: #bbb; }
+        .target-val { color: var(--primary-glow); font-weight: bold; }
+        
+        .lab-footer-notes { max-width: 500px; margin: 30px auto; text-align: left; }
+        .lab-footer-notes h4 { font-weight: bold; text-decoration: underline; color: #ffffff; }
+        .lab-footer-notes p { font-weight: bold; color: #ffffff; font-size: 1.1rem; margin: 10px 0; }
+    </style>
+</head>
+<body onclick="closeDash(event)">
+
+    <button class="dash-toggle" onclick="toggleDash(event)">☰ Dashboard</button>
+    <div class="dashboard" id="dashboard">
+        <h2 style="border-bottom: 1px solid #fff; padding-bottom: 10px;">Saved Results</h2>
+        <div id="saved-list"></div>
+        <button class="clear-dash-btn" onclick="clearAllResults()">Clear All Results</button>
+    </div>
+
+    <div class="top-credit"><h2>Made By Sriram</h2></div>
+
+    <div class="container">
+        <h1 class="hype-message">Predict your CGPA before results</h1>
+        
+        <select id="branchPicker">
+            <option value="">-- Choose Branch --</option>
+            <option value="CSE">CSE</option>
+            <option value="AIML">CSE (AI & ML)</option>
+            <option value="DS">CSE (Data Science)</option>
+            <option value="IT">IT</option>
+            <option value="ECE">ECE</option>
+            <option value="EEE">EEE</option>
+            <option value="AERO">Aeronautical Engineering</option>
+            <option value="MECH">Mechanical Engineering</option>
+            <option value="CIVIL">Civil Engineering</option>
+        </select>
+
+        <div id="main-content-area"></div>
+        <div id="result-display"></div>
+
+        <div id="target-area" class="target-container">
+            <h3 style="margin-top:0;">Targets for Overall CGPA</h3>
+            <div id="target-list"></div>
+        </div>
+
+        <button id="save-btn" class="btn" onclick="saveResult()">Save Result</button>
+        <div class="btn-group" id="btn-group">
+            <button id="calculate-btn" class="btn">Calculate CGPA</button>
+            <button id="reset-btn" class="btn" onclick="resetForm()">Reset</button>
+        </div>
+    </div>
+
+<script>
+    const branchPicker = document.getElementById('branchPicker');
+    const contentArea = document.getElementById('main-content-area');
+    const btnGroup = document.getElementById('btn-group');
+    const resultDiv = document.getElementById('result-display');
+    const saveBtn = document.getElementById('save-btn');
+    const dashboard = document.getElementById('dashboard');
+    const targetArea = document.getElementById('target-area');
+    const targetList = document.getElementById('target-list');
+    let currentGPA = 0;
+
+    const branchData = {
+        "CSE_IT": { theory: [{name:"Matrices and Calculus",cr:4},{name:"Engineering Chemistry",cr:3},{name:"Basic Electrical and Electronics Engineering",cr:3},{name:"Object Oriented Programming",cr:3},{name:"Essentials of Problem Solving",cr:3}], labs: [{name:"Engineering Chemistry Laboratory",cr:1},{name:"Object Oriented Programming Laboratory",cr:1},{name:"Front-End Web Development Laboratory",cr:1},{name:"Computer Aided Engineering Graphics",cr:2}] },
+        "AERO_MECH_CIVIL": { theory: [{name:"Matrices and Calculus",cr:4},{name:"Engineering Physics",cr:3},{name:"Professional Communication",cr:3},{name:"Engineering Mechanics",cr:3},{name:"Object Oriented Programming",cr:3}], labs: [{name:"English Language and Communication Skills Laboratory",cr:1},{name:"Object Oriented Programming Laboratory",cr:1},{name:"Engineering Physics Laboratory",cr:1},{name:"Engineering Workshop",cr:1}] },
+        "ECE_EEE": { theory: [{name:"Matrices and Calculus",cr:4},{name:"Engineering Physics",cr:3},{name:"Professional Communication",cr:3},{name:"Electrical Circuits",cr:3},{name:"Object Oriented Programming",cr:3}], labs: [{name:"English Language and Communication Skills Laboratory",cr:1},{name:"Object Oriented Programming Laboratory",cr:1},{name:"Engineering Physics Laboratory",cr:1},{name:"Engineering Workshop",cr:1}] },
+        "AIML_DS": { theory: [{name:"Matrices and Calculus",cr:4},{name:"Engineering Physics",cr:3},{name:"Professional Communication",cr:3},{name:"Object Oriented Programming",cr:3},{name:"Essentials of Problem Solving",cr:3}], labs: [{name:"English Language and Communication Skills Laboratory",cr:1},{name:"Object Oriented Programming Laboratory",cr:1},{name:"Engineering Physics Laboratory",cr:1},{name:"Front-End Web Development Laboratory",cr:1}] }
+    };
+
+    function renderSubjects(branch) {
+        let k = (branch==="CSE"||branch==="IT")?"CSE_IT":(branch==="AIML"||branch==="DS")?"AIML_DS":(branch==="ECE"||branch==="EEE")?"ECE_EEE":["AERO","MECH","CIVIL"].includes(branch)?"AERO_MECH_CIVIL":"";
+        if (!k) return;
+        let html = "<h2 class='section-heading'>Theory Subjects</h2>";
+        branchData[k].theory.forEach((s, i) => {
+            html += `<div class="subject-card theory-card" data-credits="${s.cr}" style="animation-delay: ${i * 0.1}s">
+                <div class="subject-name">${s.name}</div>
+                <div class="subdivision-group"><label class="subdivision-label">CIE - 1</label><input type="number" class="mark-input t-cie1" data-max="10" placeholder="Enter Marks"></div>
+                <div class="subdivision-group"><label class="subdivision-label">CIE - 2</label><input type="number" class="mark-input t-cie2" data-max="10" placeholder="Enter Marks"></div>
+                <div class="subdivision-group"><label class="subdivision-label">SEE</label><input type="number" class="mark-input t-see" data-max="60" placeholder="Enter Marks"></div>
+                <div class="subdivision-group"><label class="subdivision-label">Internals (out of 20)</label><input type="number" class="mark-input t-int" data-max="20" placeholder="Enter Marks"></div>
+            </div>`;
+        });
+        html += "<h2 class='section-heading'>Lab Subjects</h2>";
+        branchData[k].labs.forEach((l, i) => {
+            html += `<div class="subject-card lab-card" data-credits="${l.cr}" style="animation-delay: ${i * 0.1 + 0.5}s">
+                <div class="subject-name">${l.name}</div>
+                <div class="subdivision-group"><label class="subdivision-label">Lab Internals (out of 40)</label><input type="number" class="mark-input l-int" data-max="40" placeholder="Enter Marks"></div>
+            </div>`;
+        });
+        html += `<div class="lab-footer-notes"><h4>Based on what seniors said:</h4><p>• For Lab Externals (out of 60), they'll mostly give 50 marks.</p><p>• Mostly expect 8/10 or 9/10 for Lab Subjects.</p></div>`;
+        contentArea.innerHTML = html;
+    }
+
+    branchPicker.onchange = () => { renderSubjects(branchPicker.value); btnGroup.style.display = branchPicker.value ? "flex" : "none"; resultDiv.style.display = "none"; saveBtn.style.display = "none"; targetArea.style.display = "none"; };
+
+    document.addEventListener('change', e => {
+        if (e.target.classList.contains('mark-input')) {
+            let v = parseFloat(e.target.value), m = parseFloat(e.target.dataset.max);
+            if (isNaN(v) || v < 0 || v > m) { alert("Invalid Input Given"); e.target.value = ""; }
+        }
+    });
+
+    document.getElementById('calculate-btn').onclick = () => {
+        let tp = 0, tc = 0;
+        document.querySelectorAll('.theory-card').forEach(c => {
+            let cr = parseFloat(c.dataset.credits), tot = (parseFloat(c.querySelector('.t-cie1').value)||0) + (parseFloat(c.querySelector('.t-cie2').value)||0) + (parseFloat(c.querySelector('.t-see').value)||0) + (parseFloat(c.querySelector('.t-int').value)||0);
+            let gp = tot>=90?10:tot>=80?9:tot>=70?8:tot>=60?7:tot>=50?6:tot>=40?5:0;
+            tp += (gp * cr); tc += cr;
+        });
+        document.querySelectorAll('.lab-card').forEach(c => { tp += (8.5 * parseFloat(c.dataset.credits)); tc += parseFloat(c.dataset.credits); });
+        currentGPA = (tp / tc);
+        resultDiv.innerHTML = `Predicted CGPA: ${currentGPA.toFixed(2)}`;
+        resultDiv.style.display = "block"; saveBtn.style.display = "block";
+        
+        // TARGET CALCULATOR INTEGRATION
+        targetList.innerHTML = "";
+        [9.5, 9, 8.5, 8, 7.5].forEach(t => {
+            let req = (t * 2) - currentGPA;
+            let valText = req > 10 ? "Target not achievable" : `Need ${req.toFixed(2)} in 2nd Sem`;
+            targetList.innerHTML += `<div class="target-row">
+                <span class="target-label">Target ${t}:</span>
+                <span class="target-val">${valText}</span>
+            </div>`;
+        });
+        targetArea.style.display = "block";
+        resultDiv.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    function resetForm() { 
+        document.querySelectorAll('.mark-input').forEach(i => i.value = ""); 
+        resultDiv.style.display = "none"; 
+        saveBtn.style.display = "none"; 
+        targetArea.style.display = "none";
+    }
+
+    function toggleDash(e) { e.stopPropagation(); dashboard.classList.toggle('open'); }
+    function closeDash(e) { if (dashboard.classList.contains('open') && !dashboard.contains(e.target)) dashboard.classList.remove('open'); }
+
+    function saveResult() {
+        let n = prompt("Enter a name for this result");
+        if(n) {
+            let res = JSON.parse(localStorage.getItem('savedGPA') || '[]');
+            res.push({ name: n, gpa: currentGPA.toFixed(2), branch: branchPicker.value, marks: Array.from(document.querySelectorAll('.mark-input')).map(i => i.value) });
+            localStorage.setItem('savedGPA', JSON.stringify(res)); updateDash(); alert("Result saved!");
+        }
+    }
+
+    function updateDash() {
+        let res = JSON.parse(localStorage.getItem('savedGPA') || '[]');
+        let list = document.getElementById('saved-list'); list.innerHTML = "";
+        res.forEach((item, index) => {
+            let d = document.createElement('div'); d.className = "saved-item";
+            d.onclick = () => {
+                branchPicker.value = item.branch; renderSubjects(item.branch); btnGroup.style.display = "flex";
+                setTimeout(() => {
+                    let inputs = document.querySelectorAll('.mark-input');
+                    item.marks.forEach((val, i) => { if(inputs[i]) inputs[i].value = val; });
+                    // Trigger calculation to update UI and targets
+                    document.getElementById('calculate-btn').click();
+                }, 10); dashboard.classList.remove('open');
+            };
+            d.innerHTML = `<button class="delete-btn" onclick="event.stopPropagation(); deleteResult(${index})">Delete</button><strong>${item.name}</strong><br>CGPA: ${item.gpa}`;
+            list.appendChild(d);
+        });
+    }
+
+    function deleteResult(i) {
+        let res = JSON.parse(localStorage.getItem('savedGPA') || '[]'); res.splice(i, 1);
+        localStorage.setItem('savedGPA', JSON.stringify(res)); updateDash();
+    }
+
+    function clearAllResults() {
+        if(confirm("Are you sure you want to clear all saved results?")) {
+            localStorage.removeItem('savedGPA');
+            updateDash();
+        }
+    }
+
+    window.onload = updateDash;
+    document.addEventListener('input', e => { if (e.target.classList.contains('mark-input')) e.target.value = e.target.value.replace(/\D/g, ''); });
+</script>
+</body>
+</html>
