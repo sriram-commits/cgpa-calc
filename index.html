@@ -15,12 +15,6 @@
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-            100% { transform: translateY(0px); }
-        }
-
         body, html {
             margin: 0; padding: 0;
             background-color: #000000;
@@ -31,7 +25,7 @@
             scroll-behavior: smooth;
         }
 
-        /* 3D FLOATING CREDIT */
+        /* HEADER - Moved slightly down as requested */
         .top-credit { 
             text-align: right; padding: 50px 40px 10px 0; width: 100%; 
             box-sizing: border-box;
@@ -41,7 +35,6 @@
             text-shadow: 0 0 15px rgba(255,255,255,0.3);
         }
 
-        /* 3D DASHBOARD */
         .dashboard {
             position: fixed; left: -300px; top: 0; width: 300px; height: 100%;
             background: rgba(0, 0, 0, 0.95); border-right: 2px solid #ffffff;
@@ -52,13 +45,14 @@
         }
         .dashboard.open { transform: translateX(300px); }
 
+        /* MODIFIED SMALLER DASHBOARD TOGGLE */
         .dash-toggle {
             position: fixed; left: 10px; top: 20px; background: #ffffff; color: #000000;
-            border: none; padding: 12px 20px; font-weight: bold; cursor: pointer;
-            z-index: 3001; border-radius: 5px; font-size: 1rem;
+            border: none; padding: 8px 14px; font-weight: bold; cursor: pointer;
+            z-index: 3001; border-radius: 5px; font-size: 0.85rem;
             transition: 0.3s; box-shadow: 0 5px 15px rgba(255,255,255,0.2);
         }
-        .dash-toggle:hover { transform: scale(1.1); box-shadow: 0 0 20px #ffffff; }
+        .dash-toggle:hover { transform: scale(1.05); box-shadow: 0 0 15px #ffffff; }
 
         .saved-item {
             border: 1px solid rgba(255,255,255,0.3); padding: 15px; margin-bottom: 15px;
@@ -287,7 +281,6 @@
         resultDiv.innerHTML = `Predicted CGPA: ${currentGPA.toFixed(2)}`;
         resultDiv.style.display = "block"; saveBtn.style.display = "block";
         
-        // TARGET CALCULATOR INTEGRATION
         targetList.innerHTML = "";
         [9.5, 9, 8.5, 8, 7.5].forEach(t => {
             let req = (t * 2) - currentGPA;
@@ -330,7 +323,6 @@
                 setTimeout(() => {
                     let inputs = document.querySelectorAll('.mark-input');
                     item.marks.forEach((val, i) => { if(inputs[i]) inputs[i].value = val; });
-                    // Trigger calculation to update UI and targets
                     document.getElementById('calculate-btn').click();
                 }, 10); dashboard.classList.remove('open');
             };
